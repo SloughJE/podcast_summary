@@ -94,13 +94,18 @@ def main():
     st.sidebar.markdown("- The **guest info** pulled from Wikipedia is summarized by GPT. This information is not always the actual guest (work in progress).")
 
     if process_button:
-        podcast_info = process_podcast_info(url)
-        st.header("Newsletter Content")
-        st.subheader("Episode Title")
-        st.write(podcast_info['podcast_details']['episode_title'])
-        display_podcast_summary(podcast_info)
-        display_podcast_guest(podcast_info)
-        display_podcast_highlights(podcast_info)
+        # Comment out or remove the lines that try to process the podcast info
+        # podcast_info = process_podcast_info(url)
+        # st.header("Newsletter Content")
+        # st.subheader("Episode Title")
+        # st.write(podcast_info['podcast_details']['episode_title'])
+        # display_podcast_summary(podcast_info)
+        # display_podcast_guest(podcast_info)
+        # display_podcast_highlights(podcast_info)
+
+        # Add a message about the backend issues
+        st.error("Modal is not working due to token issues. Please check back later.")
+
 
 
 def create_dict_from_json_files(folder_path):
