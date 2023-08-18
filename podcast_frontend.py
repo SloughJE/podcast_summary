@@ -87,6 +87,12 @@ def main():
     process_button = st.sidebar.button("Process Podcast Feed")
     st.sidebar.markdown("**Note**: Podcast processing can take up to 5 mins, please be patient.")
 
+    # Explanatory text
+    st.sidebar.markdown("### Explanations:")
+    st.sidebar.markdown("- The **top image** is inspired by the podcast TLDR, generated using a random choice of activity and styles.")
+    st.sidebar.markdown("- The **TLDR summary** and **Key Moments** are generated using GPT.")
+    st.sidebar.markdown("- The **guest info** pulled from Wikipedia is summarized by GPT. This information is not always the actual guest (work in progress).")
+
     if process_button:
         podcast_info = process_podcast_info(url)
         st.header("Newsletter Content")
