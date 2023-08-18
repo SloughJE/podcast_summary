@@ -94,14 +94,27 @@ def main():
     st.sidebar.markdown("- The **guest info** pulled from Wikipedia is summarized by GPT. This information is not always the actual guest (work in progress).")
 
     if process_button:
-        # Comment out or remove the lines that try to process the podcast info
-        # podcast_info = process_podcast_info(url)
-        # st.header("Newsletter Content")
-        # st.subheader("Episode Title")
-        # st.write(podcast_info['podcast_details']['episode_title'])
-        # display_podcast_summary(podcast_info)
-        # display_podcast_guest(podcast_info)
-        # display_podcast_highlights(podcast_info)
+        #try:
+        # Assuming process_podcast_info(url) returns a dictionary with podcast info and image path
+        #processed_data = process_podcast_info(url)
+        #podcast_info = processed_data['info']
+        #image_path = processed_data['image_path']
+
+        # Display the podcast title
+        #st.title(podcast_info['podcast_details']['podcast_details']['title'])
+
+        # Display the DALL-E generated image
+        #if image_path and os.path.exists(image_path):
+        #    st.image(image_path, caption="DALL-E Generated Image", width=400)
+        #else:
+        #    st.write(f"DALL-E Generated Image not found!")
+
+        # Call the comprehensive display function
+        #display_podcast_info(podcast_info)
+
+        #except Exception as e:
+            # If there's an error in processing, display an error message
+        #    st.error(f"Error processing the podcast: {e}")
 
         # Add a message about the backend issues
         st.error("Modal app backend is not working due to token issues. Please check back later.")
