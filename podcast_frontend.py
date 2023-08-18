@@ -104,7 +104,7 @@ def main():
         # display_podcast_highlights(podcast_info)
 
         # Add a message about the backend issues
-        st.error("Modal is not working due to token issues. Please check back later.")
+        st.error("Modal app backend is not working due to token issues. Please check back later.")
 
 
 
