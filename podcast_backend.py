@@ -10,17 +10,16 @@ import wikipedia
 import whisper
 whisper._download(whisper._MODELS["medium"], '/content/podcast/', False)
 
-# Sanitize and shorten the titles for use in filenames and directories
-def sanitize_shorten_filename(filename, max_length = 15):
-        """Sanitize the filename to remove invalid characters."""
-        invalid_chars = ['<', '>', ':', '"', '/', '\\', '|', '?', '*']
-        for char in invalid_chars:
-            filename = filename.replace(char, '_')
+def sanitize_shorten_filename(filename, max_length=15):
+    """Sanitize the filename to only include alphanumeric characters."""
+    # Retain only alphanumeric characters
+    filename = ''.join(char for char in filename if char.isalnum())
 
-        # Truncate episode title if it's too long
-        if len(filename) > max_length:
-            filename = filename[:max_length]
-        return filename
+    # Truncate episode title if it's too long
+    if len(filename) > max_length:
+        filename = filename[:max_length]
+    return filename
+
 
 def count_tokens(text, model_name="gpt-3.5-turbo"):
     import tiktoken
