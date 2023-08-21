@@ -5,6 +5,8 @@ import pickle
 import openai
 import json
 import wikipedia 
+import tiktoken
+import time
 
 # Load the Whisper model
 import whisper
@@ -102,9 +104,17 @@ def get_transcribe_podcast(rss_url, local_path):
     print("Load the Whisper model")
     model = whisper.load_model('medium', device='cuda', download_root='/content/podcast/')
 
+    # Record the start time
+    start_time = time.time()
     # Perform the transcription
     print("Starting podcast transcription")
     result = model.transcribe(str(episode_path))
+    # Compute the elapsed time in seconds
+    elapsed_time = time.time() - start_time
+    minutes, seconds = divmod(elapsed_time, 60)
+
+    # Print the elapsed time
+    print(f"Transcription completed in {int(minutes)} minutes and {int(seconds)} seconds.")
 
    # Return the transcribed text along with the entire feed and first episode details
     output = {
@@ -445,7 +455,9 @@ def process_podcast(url, path):
     return output, image_data
 
 
-def save_podcast_output(rss_url, local_path):
+def save_podcast_output(rss_url, local_path,openai_api_key):
+    # Set the OpenAI API Key
+    openai.api_key = openai_api_key
     # Call the process_podcast function directly
     output, image_data = process_podcast(rss_url, local_path)
 
