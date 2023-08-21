@@ -35,8 +35,8 @@ if __name__ == "__main__":
         openai_api_key = os.environ.get("OPENAI_API_KEY")
 
         if args.run_backend:
-            rss_url = "https://feeds.feedburner.com/udacity-linear-digressions?format=xml"
-            local_path = 'test/'
+            rss_url = "https://feeds.simplecast.com/dHoohVNH"
+            local_path = 'podcasts/'
             save_podcast_output(
                 rss_url,
                 local_path,
