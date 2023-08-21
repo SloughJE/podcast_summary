@@ -39,3 +39,8 @@ if __name__ == "__main__":
 
 # rss_url = "https://tenminutepodcast.libsyn.com/rss"
 # local_path = '/content/drive/My Drive/streamlit/'
+# # Conan Needs a Friend
+# rss_url = 'https://feeds.simplecast.com/dHoohVNH'
+
+# Unexplainable
+# rss_url = 'https://feeds.megaphone.fm/VMP9331026707'
