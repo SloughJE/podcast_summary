@@ -176,8 +176,8 @@ def get_podcast_summary(podcast_transcript):
 
 def get_single_subject(podcast_summary):
     single_subjectPrompt = """
-    Please extract one word or acronym of the most important subject or idea discussed from this summary of a podcast.
-    Only return one word.
+    Please extract 5 words or less of the most important subject or idea discussed from this summary of a podcast.
+    Return only these words.
     """
     single_subject = extract_information_from_podcast(podcast_summary, single_subjectPrompt)
 
@@ -404,7 +404,7 @@ def generate_podcast_image(podcast_summary, podcast_title, episode_title, single
 
     try:
         prompt = (f"An image of someone {activity} in the style of {style} while deeply engrossed in listening to the podcast titled '{podcast_title}' "
-          f"The background should look like {single_subject}.")
+          f"The background should be inspired from this phrase: {single_subject}.")
         image_data = generate_dalle_image(prompt)
         if not is_valid_image_response(image_data):
             raise ValueError("Invalid DALL-E response")
