@@ -1,5 +1,5 @@
 # Use a lightweight Python image instead of a full Ubuntu image
-FROM python:3.9-slim-buster
+FROM nvidia/cuda:11.0-base
 
 RUN mkdir /code
 WORKDIR /code
