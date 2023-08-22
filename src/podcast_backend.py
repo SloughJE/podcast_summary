@@ -8,6 +8,8 @@ import tiktoken
 import time
 import whisper
 import openai
+import random
+
 
 def sanitize_shorten_filename(filename, max_length=15):
     """Sanitize the filename to only include alphanumeric characters."""
@@ -25,8 +27,9 @@ def count_tokens(text, model_name="gpt-3.5-turbo"):
     return len(enc.encode(text))
 
 
-def trim_text(text, max_tokens=14500):
+def trim_text(text, max_tokens=12000):
     tokens = text.split()  # Splitting by whitespace for simplicity
+    print(f"token length: {len(tokens)}")
     if len(tokens) > max_tokens:
         print(f"transcription length too long, trimming text to length: {max_tokens}")
         return ' '.join(tokens[:max_tokens])
@@ -131,7 +134,7 @@ def extract_information_from_podcast(transcript, prompt):
 
     # Choose the model based on token count
     total_tokens = count_tokens(request)
-    if total_tokens <= 4096:
+    if total_tokens <= 3500:
         model_name = "gpt-3.5-turbo"
     else:
         model_name = "gpt-3.5-turbo-16k"
@@ -149,10 +152,9 @@ def extract_information_from_podcast(transcript, prompt):
     
 
 def get_podcast_summary(podcast_transcript):
-    
+    print("generating summary")
     summaryPrompt = """
-    Please provide a summary suitable for an email newsletter in the form of bullet points.
-    The reader should be able to go through it in 30 seconds or less.
+    Please provide a summary of this podcast transcript suitable for an email newsletter in the form of bullet points.
     Highlight the main points, any surprising or unexpected information, and conclude with an inspiring takeaway from the podcast.
     Format as follows:
     - TL;DR: [Brief overall summary]
@@ -161,15 +163,19 @@ def get_podcast_summary(podcast_transcript):
     - Bullet Point 3: [Another main point]
     - Surprising Fact: [Unexpected information]
     - Inspiring Takeaway: [Inspiring point from the podcast]
+
+    The transcipt: 
     """
     podcastSummary = extract_information_from_podcast(podcast_transcript, summaryPrompt)
 
     return podcastSummary
 
 def get_single_subject(podcast_summary):
+    print("generating single subjects")
+
     single_subjectPrompt = """
-    Please extract 5 words or less of the most important subjects or ideas discussed from this summary of a podcast.
-    Return only these words.
+    Please extract 5 words or less of the most important subject or idea discussed from this summary of a podcast.
+    Return only 5 words or less.
     """
     single_subject = extract_information_from_podcast(podcast_summary, single_subjectPrompt)
 
@@ -180,7 +186,8 @@ def get_podcast_guest(podcast_transcript):
     import json
     
     """Extract the guest's name from the podcast transcript using the OpenAI API."""
-    
+    print("getting podcast guest")
+
     request = podcast_transcript[:5000]
 
     completion = openai.ChatCompletion.create(
@@ -218,7 +225,7 @@ def get_podcast_guest(podcast_transcript):
 
 
 def get_podcast_highlights(podcast_transcript):
-    import openai
+    print("generating highlights")
     chapters_prompt = """
     Divide the following podcast transcript into chapters and provide a title or theme for each chapter:
     """
@@ -318,8 +325,6 @@ def generate_dalle_image(prompt):
         print(f"An error occurred during DALL-E image generation: {e}")
         return None
 
-
-import random
 
 def generate_podcast_image(podcast_summary, podcast_title, episode_title, single_subject):
     """Generate an image using DALL-E based on the podcast summary and titles."""
