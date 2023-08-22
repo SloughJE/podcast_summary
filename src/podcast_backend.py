@@ -9,8 +9,8 @@ import tiktoken
 import time
 
 # Load the Whisper model
-import whisper
-whisper._download(whisper._MODELS["medium"], '/content/podcast/', False)
+# import whisper
+# whisper._download(whisper._MODELS["medium"], '/content/podcast/', False)
 
 def sanitize_shorten_filename(filename, max_length=15):
     """Sanitize the filename to only include alphanumeric characters."""
@@ -97,22 +97,24 @@ def get_transcribe_podcast(rss_url, local_path):
 
     print("Podcast Episode downloaded")
 
-    # Load the Whisper model
-    import whisper
-
-    # Load model from saved location
-    print("Load the Whisper model")
-    model = whisper.load_model('medium', device='cuda', download_root='/content/podcast/')
-
-    # Record the start time
+    # transcribe podcast from audio
+    # Use faster-whisper for transcription
+    from faster_whisper import WhisperModel
+    # Set your desired model size and compute type (example: large-v2 with GPU & FP16)
+    model_size = "large-v2"
+    model = WhisperModel(model_size, device="cuda", compute_type="float16")
+    # Start recording time
+    import time
     start_time = time.time()
-    # Perform the transcription
-    print("Starting podcast transcription")
-    result = model.transcribe(str(episode_path))
+    # Transcribe the podcast episode
+    segments, info = model.transcribe(str(episode_path), beam_size=1, vad_filter=True)
+    # As 'segments' is a generator, you need to collect the transcriptions by iterating through it
+    transcription_segments = list(segments)
+    # Combine all segments to produce the full transcription
+    full_transcription = ' '.join([segment.text for segment in transcription_segments])
     # Compute the elapsed time in seconds
     elapsed_time = time.time() - start_time
     minutes, seconds = divmod(elapsed_time, 60)
-
     # Print the elapsed time
     print(f"Transcription completed in {int(minutes)} minutes and {int(seconds)} seconds.")
 
@@ -124,7 +126,7 @@ def get_transcribe_podcast(rss_url, local_path):
             'podcast_title': podcast_title,
             'episode_title': episode_title,
             'episode_image': episode_image,
-            'episode_transcript': result['text']
+            'episode_transcript': full_transcription
         }
     }
     

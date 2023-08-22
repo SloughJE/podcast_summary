@@ -10,7 +10,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--run_backend",
+        "--run_backend",    
         help="process podcast and save output",
         action="store_true"
     )
@@ -35,8 +35,8 @@ if __name__ == "__main__":
         openai_api_key = os.environ.get("OPENAI_API_KEY")
 
         if args.run_backend:
-            rss_url = "https://feeds.simplecast.com/dHoohVNH"
-            local_path = 'podcasts/'
+            rss_url = "https://feeds.megaphone.fm/VMP9331026707"
+            local_path = 'test/'
             save_podcast_output(
                 rss_url,
                 local_path,
