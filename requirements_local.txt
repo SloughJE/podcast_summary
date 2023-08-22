@@ -4,5 +4,5 @@ openai
 wikipedia
 tiktoken
 python-dotenv
-faster-whisper
-# git+https://github.com/openai/whisper.git
+streamlit
+git+https://github.com/openai/whisper.git
