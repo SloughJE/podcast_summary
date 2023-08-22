@@ -7,8 +7,8 @@ def display_podcast_info(podcast_info):
     # Display the podcast title and episode title
     
     # Check if 'first_episode' exists and then display its title
-    if 'first_episode' in podcast_info['podcast_details']:
-        st.subheader(podcast_info['podcast_details']['first_episode']['title'])
+    #if 'first_episode' in podcast_info['podcast_details']:
+    #    st.subheader(podcast_info['podcast_details']['first_episode']['title'])
 
     display_podcast_summary(podcast_info)
     # Check if there's a guest and display their information
@@ -30,19 +30,11 @@ def display_podcast_summary(podcast_info):
     with col2:
         st.image(podcast_info['podcast_details']['transcribed_data']['episode_image'], caption="Podcast Cover", width=300, use_column_width=True)
 
+
 def display_podcast_guest(podcast_info):
-    """Display the podcast guest and their details."""
-    col3, col4 = st.columns([3, 7])
-    with col3:
-        st.subheader("Podcast Guest")
-        # Using get() to provide a default value if 'podcast_guest' doesn't exist
-        st.write(podcast_info.get('podcast_guest', 'Guest not available'))
-    with col4:
-        st.subheader("Summary of Podcast Guest Details")
-        # Check if 'detailed_guest_info' exists, if not, provide a default message
-        st.write("Guest information is currently not reliable for lesser known guests")
-        guest_details = podcast_info.get('detailed_guest_info', 'Details not available.')
-        st.write(guest_details)
+    """Display the podcast guest."""
+    guest_name = podcast_info.get('podcast_guest', 'Guest not available')
+    st.subheader(f"Podcast Guest: {guest_name}")
 
 
 def display_podcast_highlights(podcast_info):
@@ -54,6 +46,10 @@ def display_podcast_highlights(podcast_info):
 def main():
     st.title("Newsletter Dashboard")
 
+    # Create an empty placeholder at the top
+    error_placeholder = st.empty()
+
+    # Initialize available_podcast_info using create_dict_from_json_files or a similar function
     available_podcast_info = create_dict_from_json_files('./podcasts')
 
     # Left section - Input fields
@@ -68,15 +64,32 @@ def main():
         podcast_info = podcast_data['info']
         st.title(podcast_info['podcast_details']['podcast_details']['title'])
 
-        st.header("DALL-E Podcast Inspired Image")
+        # Check if 'first_episode' exists and then display its title
+        if 'first_episode' in podcast_info['podcast_details']:
+            episode_link = podcast_info['podcast_details']['first_episode']['link']
+            episode_title = podcast_info['podcast_details']['first_episode']['title']
+            st.markdown(f"## Episode: [{episode_title}]({episode_link})")
+
         
-        # Display the DALL-E generated image
+        # MP3 path derived from image path  
+        # get image path:
         image_path = podcast_data['image_path']
+
+        mp3_path = image_path.replace('_image.jpg', '.mp3')
+        if os.path.exists(mp3_path):
+            st.write("Listen to the Episode:")
+            st.audio(mp3_path, format='audio/mp3')
+        else:
+            st.write("MP3 file not found!")
+
+        st.header("DALL-E Podcast Inspired Image")
+
+        # Display the DALL-E generated image
         if image_path and os.path.exists(image_path):
             st.image(image_path, caption="DALL-E Generated Image", width=400)
         else:
             st.write(f"DALL-E Generated Image not found!")
-
+        
         # Call the comprehensive display function
         display_podcast_info(podcast_info)
 
@@ -84,16 +97,22 @@ def main():
     st.sidebar.subheader("Add and Process New Podcast Feed")
     url = st.sidebar.text_input("Link to RSS Feed")
 
-    process_button = st.sidebar.button("Process Podcast Feed")
+    process_button = st.sidebar.button("Process Podcast Feed", key="process_podcast_feed_btn")
+
+    # Check if the Process Podcast Feed button is pressed
+    if process_button:
+        # Display the error message using the placeholder created earlier
+        error_placeholder.error("App backend is not working. Please check back later.")
+
     st.sidebar.markdown("**Note**: Podcast processing can take up to 5 mins, please be patient.")
 
     # Explanatory text
     st.sidebar.markdown("### Explanations:")
-    st.sidebar.markdown("- The **top image** is inspired by the podcast TLDR, generated using a random choice of activity and styles.")
-    st.sidebar.markdown("- The **TLDR summary** and **Key Moments** are generated using GPT.")
-    st.sidebar.markdown("- The **guest info** pulled from Wikipedia is summarized by GPT. This information is not always the actual guest (work in progress).")
+    st.sidebar.markdown("- The **top image** is inspired by the podcast summary, generated using a random choice of activity and styles with DALL-E 2 API.")
+    st.sidebar.markdown("- The podcast audio is transcribed using Whisper, then the **TLDR, main points** and **Key Moments** are generated by GPT from the transcript.")
+    st.sidebar.markdown("- The **podcast guest** is generated by the 'function' calling capability of the OpenAI API.")
 
-    if process_button:
+    # if process_button:
         #try:
         # Assuming process_podcast_info(url) returns a dictionary with podcast info and image path
         #processed_data = process_podcast_info(url)
@@ -117,7 +136,7 @@ def main():
         #    st.error(f"Error processing the podcast: {e}")
 
         # Add a message about the backend issues
-        st.error("Modal app backend is not working due to token issues. Please check back later.")
+        # st.error("App backend is not working. Please check back later.")
 
 
 

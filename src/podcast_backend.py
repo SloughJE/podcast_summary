@@ -5,10 +5,12 @@ import pickle
 import openai
 import json
 import wikipedia 
+import tiktoken
+import time
 
 # Load the Whisper model
-import whisper
-whisper._download(whisper._MODELS["medium"], '/content/podcast/', False)
+# import whisper
+# whisper._download(whisper._MODELS["medium"], '/content/podcast/', False)
 
 def sanitize_shorten_filename(filename, max_length=15):
     """Sanitize the filename to only include alphanumeric characters."""
@@ -95,16 +97,26 @@ def get_transcribe_podcast(rss_url, local_path):
 
     print("Podcast Episode downloaded")
 
-    # Load the Whisper model
-    import whisper
-
-    # Load model from saved location
-    print("Load the Whisper model")
-    model = whisper.load_model('medium', device='cuda', download_root='/content/podcast/')
-
-    # Perform the transcription
-    print("Starting podcast transcription")
-    result = model.transcribe(str(episode_path))
+    # transcribe podcast from audio
+    # Use faster-whisper for transcription
+    from faster_whisper import WhisperModel
+    # Set your desired model size and compute type (example: large-v2 with GPU & FP16)
+    model_size = "large-v2"
+    model = WhisperModel(model_size, device="cuda", compute_type="float16")
+    # Start recording time
+    import time
+    start_time = time.time()
+    # Transcribe the podcast episode
+    segments, info = model.transcribe(str(episode_path), beam_size=1, vad_filter=True)
+    # As 'segments' is a generator, you need to collect the transcriptions by iterating through it
+    transcription_segments = list(segments)
+    # Combine all segments to produce the full transcription
+    full_transcription = ' '.join([segment.text for segment in transcription_segments])
+    # Compute the elapsed time in seconds
+    elapsed_time = time.time() - start_time
+    minutes, seconds = divmod(elapsed_time, 60)
+    # Print the elapsed time
+    print(f"Transcription completed in {int(minutes)} minutes and {int(seconds)} seconds.")
 
    # Return the transcribed text along with the entire feed and first episode details
     output = {
@@ -114,7 +126,7 @@ def get_transcribe_podcast(rss_url, local_path):
             'podcast_title': podcast_title,
             'episode_title': episode_title,
             'episode_image': episode_image,
-            'episode_transcript': result['text']
+            'episode_transcript': full_transcription
         }
     }
     
@@ -166,8 +178,8 @@ def get_podcast_summary(podcast_transcript):
 
 def get_single_subject(podcast_summary):
     single_subjectPrompt = """
-    Please extract one word or acronym of the most important subject or idea discussed from this summary of a podcast.
-    Only return one word.
+    Please extract 5 words or less of the most important subject or idea discussed from this summary of a podcast.
+    Return only these words.
     """
     single_subject = extract_information_from_podcast(podcast_summary, single_subjectPrompt)
 
@@ -394,7 +406,7 @@ def generate_podcast_image(podcast_summary, podcast_title, episode_title, single
 
     try:
         prompt = (f"An image of someone {activity} in the style of {style} while deeply engrossed in listening to the podcast titled '{podcast_title}' "
-          f"The background should look like {single_subject}.")
+          f"The background should be inspired from this phrase: {single_subject}.")
         image_data = generate_dalle_image(prompt)
         if not is_valid_image_response(image_data):
             raise ValueError("Invalid DALL-E response")
@@ -445,7 +457,9 @@ def process_podcast(url, path):
     return output, image_data
 
 
-def save_podcast_output(rss_url, local_path):
+def save_podcast_output(rss_url, local_path,openai_api_key):
+    # Set the OpenAI API Key
+    openai.api_key = openai_api_key
     # Call the process_podcast function directly
     output, image_data = process_podcast(rss_url, local_path)
 
