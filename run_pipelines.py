@@ -3,7 +3,7 @@ import sys
 import argparse
 from dotenv import load_dotenv
 import os
-from podcast_backend import save_podcast_output
+from src.podcast_backend import save_podcast_output
 
 if __name__ == "__main__":
 
