@@ -1,154 +1,150 @@
-import streamlit as st
-#import modal
-import json
 import os
+import json
 
-def display_podcast_info(podcast_info):
-    # Display the podcast title and episode title
+import streamlit as st
+from typing import Dict, Any
+
+def display_podcast_info(podcast_info: dict) -> None:
+    """
+    Display the podcast title, guest information, and highlights/chapters.
     
-    # Check if 'first_episode' exists and then display its title
-    #if 'first_episode' in podcast_info['podcast_details']:
-    #    st.subheader(podcast_info['podcast_details']['first_episode']['title'])
+    Args:
+        podcast_info (dict): Dictionary containing podcast details.
 
+    """
+    
     display_podcast_summary(podcast_info)
-    # Check if there's a guest and display their information
-    # NOTE: 'podcast_guest' doesn't exist in the provided JSON. You might want to adjust this.
-
     display_podcast_guest(podcast_info)
-
-    # Display the podcast highlights/chapters
     display_podcast_highlights(podcast_info)
 
 
-
-def display_podcast_summary(podcast_info):
-    """Display the podcast episode summary and cover image."""
+def display_podcast_summary(podcast_info: dict) -> None:
+    """
+    Display the podcast episode summary and cover image.
+    
+    Args:
+        podcast_info (dict): Dictionary containing podcast details.
+    """
     col1, col2 = st.columns([7, 3])
     with col1:
         st.subheader("Episode Summary")
         st.write(podcast_info['podcast_summary'])
     with col2:
-        st.image(podcast_info['podcast_details']['transcribed_data']['episode_image'], caption="Podcast Cover", width=300, use_column_width=True)
+        image_data = podcast_info['podcast_details']['transcribed_data']['episode_image']
+        st.image(image_data, caption="Podcast Cover", width=300, use_column_width=True)
 
 
-def display_podcast_guest(podcast_info):
-    """Display the podcast guest."""
+def display_podcast_guest(podcast_info: dict) -> None:
+    """
+    Display the podcast guest.
+    
+    Args:
+        podcast_info (dict): Dictionary containing podcast details.
+    """
     guest_name = podcast_info.get('podcast_guest', 'Guest not available')
     st.subheader(f"Podcast Guest: {guest_name}")
 
 
-def display_podcast_highlights(podcast_info):
-    """Display the key moments or highlights of the podcast episode."""
+def display_podcast_highlights(podcast_info: dict) -> None:
+    """
+    Display the key moments or highlights of the podcast episode.
+    
+    Args:
+        podcast_info (dict): Dictionary containing podcast details.
+    """
     st.subheader("Key Moments")
     for moment in podcast_info['podcast_highlights'].split('\n'):
         st.markdown(f"<p style='margin-bottom: 5px;'>{moment}</p>", unsafe_allow_html=True)
 
-def main():
-    st.title("Newsletter Dashboard")
 
-    # Create an empty placeholder at the top
-    error_placeholder = st.empty()
+def display_selected_podcast(selected_podcast: str, available_podcast_info: dict) -> None:
+    """
+    Display the information related to the selected podcast.
 
-    # Initialize available_podcast_info using create_dict_from_json_files or a similar function
-    available_podcast_info = create_dict_from_json_files('./podcasts')
+    Args:
+        selected_podcast (str): The selected podcast's name.
+        available_podcast_info (dict): Information about available podcasts.
+    """
+    podcast_data = available_podcast_info[selected_podcast]
+    podcast_info = podcast_data['info']
+    st.title(podcast_info['podcast_details']['podcast_details']['title'])
 
-    # Left section - Input fields
-    st.sidebar.header("Podcast Summarization")
-    st.sidebar.markdown("App takes an RSS feed as input. The latest episode's audio is transcribed and summarized. An image inspired by the podcast summary is generated.")
+    if 'first_episode' in podcast_info['podcast_details']:
+        episode_link = podcast_info['podcast_details']['first_episode']['link']
+        episode_title = podcast_info['podcast_details']['first_episode']['title']
+        st.markdown(f"## Episode: [{episode_title}]({episode_link})")
 
-    # Dropdown box
-    st.sidebar.subheader("Available Podcasts Feeds")
-    selected_podcast = st.sidebar.selectbox("Select Podcast", options=available_podcast_info.keys())
+    display_podcast_media(podcast_data)
+    display_podcast_info(podcast_info)
 
-    if selected_podcast:
-        podcast_data = available_podcast_info[selected_podcast]
-        podcast_info = podcast_data['info']
-        st.title(podcast_info['podcast_details']['podcast_details']['title'])
 
-        # Check if 'first_episode' exists and then display its title
-        if 'first_episode' in podcast_info['podcast_details']:
-            episode_link = podcast_info['podcast_details']['first_episode']['link']
-            episode_title = podcast_info['podcast_details']['first_episode']['title']
-            st.markdown(f"## Episode: [{episode_title}]({episode_link})")
+def display_podcast_media(podcast_data: dict) -> None:
+    """
+    Display the podcast audio and generated image if available.
 
-        
-        # MP3 path derived from image path  
-        # get image path:
-        image_path = podcast_data['image_path']
+    Args:
+        podcast_data (dict): Dictionary containing podcast data.
+    """
+    image_path = podcast_data['image_path']
+    mp3_path = image_path.replace('_image.jpg', '.mp3')
+    
+    if os.path.exists(mp3_path):
+        st.write("Listen to the Episode:")
+        st.audio(mp3_path, format='audio/mp3')
+    else:
+        st.write("MP3 file not found!")
 
-        mp3_path = image_path.replace('_image.jpg', '.mp3')
-        if os.path.exists(mp3_path):
-            st.write("Listen to the Episode:")
-            st.audio(mp3_path, format='audio/mp3')
-        else:
-            st.write("MP3 file not found!")
+    st.header("DALL-E Podcast Inspired Image")
+    if os.path.exists(image_path):
+        st.image(image_path, caption="DALL-E Generated Image", width=400)
+    else:
+        st.write("DALL-E Generated Image not found!")
 
-        st.header("DALL-E Podcast Inspired Image")
 
-        # Display the DALL-E generated image
-        if image_path and os.path.exists(image_path):
-            st.image(image_path, caption="DALL-E Generated Image", width=400)
-        else:
-            st.write(f"DALL-E Generated Image not found!")
-        
-        # Call the comprehensive display function
-        display_podcast_info(podcast_info)
+def display_new_podcast_input(error_placeholder) -> None:
+    """
+    Display the input box for processing a new podcast feed and handle the processing.
 
-    # User Input box
+    Args:
+        error_placeholder (streamlit.empty): Placeholder for displaying error messages.
+    """
     st.sidebar.subheader("Add and Process New Podcast Feed")
     url = st.sidebar.text_input("Link to RSS Feed")
-
     process_button = st.sidebar.button("Process Podcast Feed", key="process_podcast_feed_btn")
-
-    # Check if the Process Podcast Feed button is pressed
+    
     if process_button:
-        # Display the error message using the placeholder created earlier
         error_placeholder.error("App backend is not working. Please check back later.")
-
     st.sidebar.markdown("**Note**: Podcast processing can take up to 5 mins, please be patient.")
 
-    # Explanatory text
+
+def display_sidebar_explanations() -> None:
+    """
+    Display explanatory texts in the sidebar.
+    """
     st.sidebar.markdown("### Explanations:")
     st.sidebar.markdown("- The **top image** is inspired by the podcast summary, generated using a random choice of activity and styles with DALL-E 2 API.")
     st.sidebar.markdown("- The podcast audio is transcribed using Whisper, then the **TLDR, main points** and **Key Moments** are generated by GPT from the transcript using the OpenAI API.")
     st.sidebar.markdown("- The **podcast guest** is generated by the 'function' calling capability of the OpenAI API.")
 
-    # if process_button:
-        #try:
-        # Assuming process_podcast_info(url) returns a dictionary with podcast info and image path
-        #processed_data = process_podcast_info(url)
-        #podcast_info = processed_data['info']
-        #image_path = processed_data['image_path']
 
-        # Display the podcast title
-        #st.title(podcast_info['podcast_details']['podcast_details']['title'])
+def create_dict_from_json_files(folder_path: str) -> Dict[str, Any]:
+    """
+    Generate a dictionary containing podcast information by reading JSON files from a directory.
 
-        # Display the DALL-E generated image
-        #if image_path and os.path.exists(image_path):
-        #    st.image(image_path, caption="DALL-E Generated Image", width=400)
-        #else:
-        #    st.write(f"DALL-E Generated Image not found!")
+    Args:
+        folder_path (str): Path to the directory containing the JSON files.
 
-        # Call the comprehensive display function
-        #display_podcast_info(podcast_info)
-
-        #except Exception as e:
-            # If there's an error in processing, display an error message
-        #    st.error(f"Error processing the podcast: {e}")
-
-        # Add a message about the backend issues
-        # st.error("App backend is not working. Please check back later.")
-
-
-
-def create_dict_from_json_files(folder_path):
+    Returns:
+        dict: Dictionary with podcast titles as keys and related information as values.
+    """
     data_dict = {}
 
     # Recursively find all JSON files in the folder and its subdirectories
-    for root, dirs, files in os.walk(folder_path):
+    for root, _, files in os.walk(folder_path):
         for file_name in files:
             if file_name.endswith('.json'):
                 file_path = os.path.join(root, file_name)
+                
                 with open(file_path, 'r') as file:
                     podcast_info = json.load(file)
                     
@@ -167,13 +163,33 @@ def create_dict_from_json_files(folder_path):
     return data_dict
 
 
+def main() -> None:
+    """
+    Streamlit application for a "Newsletter Dashboard".
+    """
+    st.title("Newsletter Dashboard")
 
+    # Create an empty placeholder at the top
+    error_placeholder = st.empty()
 
+    # Initialize available_podcast_info
+    available_podcast_info = create_dict_from_json_files('./podcasts')
 
-#def process_podcast_info(url):
-#    f = modal.Function.lookup("corise-podcast-project", "process_podcast")
-#    output = f.call(url, '/content/podcast/')
-#    return output
+    # Sidebar content
+    st.sidebar.header("Podcast Summarization")
+    st.sidebar.markdown("App takes an RSS feed as input. The latest episode's audio is transcribed and summarized. An image inspired by the podcast summary is generated.")
+    st.sidebar.subheader("Available Podcasts Feeds")
+    selected_podcast = st.sidebar.selectbox("Select Podcast", options=available_podcast_info.keys())
+
+    if selected_podcast:
+        display_selected_podcast(selected_podcast, available_podcast_info)
+    
+    # User Input box
+    display_new_podcast_input(error_placeholder)
+
+    # Explanatory text
+    display_sidebar_explanations()
+
 
 if __name__ == '__main__':
     main()
